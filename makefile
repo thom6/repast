@@ -34,26 +34,33 @@ clean: clean_compiled_files clean_output_files remove_subdirectories
 	rm -f ./include/*.h
 
 ###################################################################################################
-.PHONY: RepastHPC_Cycle_Model
-RepastHPC_Cycle_Model : copy_RepastHPC_Cycle_Model RepastHPC_Cycle_Model
+.PHONY: RepastHPC_Cycle_Network
+RepastHPC_Cycle_Network: clean_compiled_files
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Cycle_Network_Main.cpp -o ./objects/Cycle_Network_Main.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Cycle_Network_Model.cpp -o ./objects/Cycle_Network_Model.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Cycle_Network_Agent.cpp -o ./objects/Cycle_Network_Agent.o
+	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/Cycle_Network.exe  ./objects/Cycle_Network_Main.o ./objects/Cycle_Network_Model.o ./objects/Cycle_Network_Agent.o $(REPAST_HPC_LIB) $(BOOST_LIBS)
 
-.PHONY: copy_RepastHPC_Cycle_Model
-copy_RepastHPC_Cycle_Model : clean
-	cp -r ../RepastHPC/Cycle_Model/* ./
+.PHONY: RepastHPC_Cycle_Network
+RepastHPC_Cycle_Network : copy_RepastHPC_Cycle_Network RepastHPC_Cycle_Network
+
+.PHONY: copy_RepastHPC_Cycle_Network
+copy_RepastHPC_Cycle_Network : clean
+	cp -r ../RepastHPC/Cycle_Network/* ./
 
 
-.PHONY: compare_RepastHPC_Cycle_Model
-compare_RepastHPC_Cycle_Model:
-	@echo "Comparing Cycle_Model/Cycle_Model_Agent.h:"
-	-@diff ../RepastHPC/Cycle_Model/include/Cycle_Model_Agent.h ./include/Cycle_Model_Agent.h
-	@echo "Comparing Cycle_Model/Cycle_Model_Model.h:"
-	-@diff ../RepastHPC/Cycle_Model/include/Cycle_Model_Model.h ./include/Cycle_Model_Model.h
-	@echo "Comparing Cycle_Model/Cycle_Model_Agent.cpp:"
-	-@diff ../RepastHPC/Cycle_Model/src/Cycle_Model_Agent.cpp ./src/Cycle_Model_Agent.cpp
-	@echo "Comparing Cycle_Model/Cycle_Model_Model.cpp:"
-	-@diff ../RepastHPC/Cycle_Model/src/Cycle_Model_Model.cpp ./src/Cycle_Model_Model.cpp
-	@echo "Comparing Cycle_Model/Cycle_Model_main.cpp:"
-	-@diff ../RepastHPC/Cycle_Model/src/Cycle_Model_main.cpp ./src/Cycle_Model_main.cpp
+.PHONY: compare_RepastHPC_Cycle_Network
+compare_RepastHPC_Cycle_Network:
+	@echo "Comparing Cycle_Network/Cycle_Network_Agent.h:"
+	-@diff ../RepastHPC/Cycle_Network/include/Cycle_Network_Agent.h ./include/Cycle_Network_Agent.h
+	@echo "Comparing Cycle_Network/Cycle_Network_Model.h:"
+	-@diff ../RepastHPC/Cycle_Network/include/Cycle_Network_Model.h ./include/Cycle_Network_Model.h
+	@echo "Comparing Cycle_Network/Cycle_Network_Agent.cpp:"
+	-@diff ../RepastHPC/Cycle_Network/src/Cycle_Network_Agent.cpp ./src/Cycle_Network_Agent.cpp
+	@echo "Comparing Cycle_Network/Cycle_Network_Model.cpp:"
+	-@diff ../RepastHPC/Cycle_Network/src/Cycle_Network_Model.cpp ./src/Cycle_Network_Model.cpp
+	@echo "Comparing Cycle_Network/Cycle_Network_main.cpp:"
+	-@diff ../RepastHPC/Cycle_Network/src/Cycle_Network_main.cpp ./src/Cycle_Network_main.cpp
 
 ###################################################################################################
 .PHONY: RepastHPC_Demo_00
