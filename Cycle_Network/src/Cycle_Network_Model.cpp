@@ -142,23 +142,37 @@ void RepastHPCDemoModel::requestAgents(){
 
 void RepastHPCDemoModel::connectAgentNetwork(){
 
-		std::vector<RepastHPCDemoAgent*> agents;
-		context.selectAgents(countOfAgents, agents, true);          // Choose all agents
-		// Make an undirected connection
-		for(size_t i = 0; i < agents.size(); i++){
+	size_t mini = 0;
+	size_t maxi = 1;
+	std::vector<RepastHPCDemoAgent*> agents;
+	context.selectAgents(countOfAgents, agents, true);          // Choose all agents
+	// Make an undirected connection
+	for(size_t i = 0; i < agents.size(); i++){
               
-	if (i==agents.size()-1){
-	      size_t mini = 0;
-              boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[mini], i + 1, i * i));
-		agentNetwork->addEdge(demoEdge);
-std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[mini]->getId() << std::endl;
-}
-	else{
-              boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[i+1], i + 1, i * i));
-  	  	      agentNetwork->addEdge(demoEdge);
-std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[i+1]->getId() << std::endl;
-}
-           }
+		if (i==agents.size()-1){
+			boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[mini], i + 1, i * i));
+			agentNetwork->addEdge(demoEdge);
+			std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[mini]->getId() << std::endl;
+		}
+		else{
+			boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new 				DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[i+1], i + 1, i * i));
+			agentNetwork->addEdge(demoEdge);
+			std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[i+1]->getId() << std::endl;
+		}
+	}
+	for(size_t i=0;i < 2;i++){
+		context.selectAgents(2, agents, true);
+		boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[mini], agents[maxi], i + 1, i * i));
+			agentNetwork->addEdge(demoEdge);
+			std::cout << "CONNECTING: " << agents[mini]->getId() << " to " << agents[maxi]->getId() << std::endl;
+	}
+	for(size_t i=0;i < 2;i++){
+		context.selectAgents(2, agents, true);
+
+			agentNetwork->removeEdge(agents[mini], agents[maxi]);
+			std::cout << "Deleting: " << agents[mini]->getId() << " to " << agents[maxi]->getId() << std::endl;
+	}
+	
 }
 
 void RepastHPCDemoModel::cancelAgentRequests(){
