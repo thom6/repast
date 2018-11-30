@@ -141,30 +141,24 @@ void RepastHPCDemoModel::requestAgents(){
 }
 
 void RepastHPCDemoModel::connectAgentNetwork(){
-	repast::SharedContext<RepastHPCDemoAgent>::const_local_iterator iter    = context.localBegin();
-	repast::SharedContext<RepastHPCDemoAgent>::const_local_iterator iterEnd = context.localEnd();
-	while(iter != iterEnd) {
-		RepastHPCDemoAgent* ego = &**iter;
+
 		std::vector<RepastHPCDemoAgent*> agents;
-		agents.push_back(ego);                          // Omit self
-		context.selectAgents(countOfAgents, agents, true);          // Choose 5 other agents randomly
+		context.selectAgents(countOfAgents, agents, true);          // Choose all agents
 		// Make an undirected connection
-		for(size_t i = 0; i <= agents.size()+1; i++){
+		for(size_t i = 0; i < agents.size(); i++){
               
-	if (i==agents.size()){
-              boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[0], i + 1, i * i));
-  	  	      agentNetwork->addEdge(demoEdge);
-std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[0]->getId() << std::endl;
+	if (i==agents.size()-1){
+	      size_t mini = 0;
+              boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[mini], i + 1, i * i));
+		agentNetwork->addEdge(demoEdge);
+std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[mini]->getId() << std::endl;
 }
 	else{
               boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[i+1], i + 1, i * i));
   	  	      agentNetwork->addEdge(demoEdge);
 std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[i+1]->getId() << std::endl;
 }
-            }
-		}
-		iter++;
-	
+           }
 }
 
 void RepastHPCDemoModel::cancelAgentRequests(){
