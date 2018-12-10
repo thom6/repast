@@ -87,7 +87,6 @@ public:
 	RepastHPCDemoModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~RepastHPCDemoModel();
 	void init();
-	void requestAgents();
     void connectAgentNetwork();
 	void cancelAgentRequests();
 	void removeLocalAgents();
@@ -95,6 +94,19 @@ public:
 	void doSomething();
 	void initSchedule(repast::ScheduleRunner& runner);
 	void recordResults();
+};
+
+class Road{
+private:
+	int ID;
+	double dedicatedRoadSpace;
+	int noOfCyclistsPerDay;
+	int percievedRoadSafety;
+	
+	
+public:
+	DataSource_AgentCTotals(repast::SharedContext<RepastHPCDemoAgent>* c);
+	int getData();
 };
 
 #endif

@@ -1,6 +1,7 @@
 /* Cycle_Network_Model.cpp */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <boost/mpi.hpp>
 #include "repast_hpc/AgentId.h"
@@ -121,140 +122,54 @@ void RepastHPCDemoModel::init(){
 	}
 }
 
-void RepastHPCDemoModel::requestAgents(){
-	int rank = repast::RepastProcess::instance()->rank();
-	int worldSize= repast::RepastProcess::instance()->worldSize();
-	repast::AgentRequest req(rank);
-	for(int i = 0; i < worldSize; i++){                     // For each process
-		if(i != rank){                                      // ... except this one
-			std::vector<RepastHPCDemoAgent*> agents;        
-			context.selectAgents(5, agents);                // Choose 5 local agents randomly
-			for(size_t j = 0; j < agents.size(); j++){
-				repast::AgentId local = agents[j]->getId();          // Transform each local agent's id into a matching non-local one
-				repast::AgentId other(local.id(), i, 0);
-				other.currentRank(i);
-				req.addRequest(other);                      // Add it to the agent request
-			}
-		}
-	}
-    repast::RepastProcess::instance()->requestAgents<RepastHPCDemoAgent, RepastHPCDemoAgentPackage, RepastHPCDemoAgentPackageProvider, RepastHPCDemoAgentPackageReceiver>(context, req, *provider, *receiver, *receiver);
-}
+
 
 void RepastHPCDemoModel::connectAgentNetwork(){
 
-		std::vector<RepastHPCDemoAgent*> agents;
-		context.selectAgents(countOfAgents, agents, true);          // Choose all agents
-		// Make an undirected connection
-		for(size_t i = 0; i < agents.size(); i++){
-              
-	if (i==agents.size()-1){
-	      size_t mini = 0;
-              boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[mini], i + 1, i * i));
+	for(int i = 0; i < countOfAgents-1; i++){
+		repast::AgentId agentFrom(i, 0, 0);
+		RepastHPCDemoAgent* fromAgent = context.getAgent(agentFrom);
+		repast::AgentId agentTo(i+1, 0, 0);
+		RepastHPCDemoAgent* toAgent = context.getAgent(agentTo);
+		boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(fromAgent, toAgent, rand() % 10, rand() % 10));
 		agentNetwork->addEdge(demoEdge);
-std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[mini]->getId() << std::endl;
-}
-	else{
-              boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(agents[i], agents[i+1], i + 1, i * i));
-  	  	      agentNetwork->addEdge(demoEdge);
-std::cout << "CONNECTING: " << agents[i]->getId() << " to " << agents[i+1]->getId() << std::endl;
-}
-           }
-}
-
-void RepastHPCDemoModel::cancelAgentRequests(){
-	int rank = repast::RepastProcess::instance()->rank();
-	if(rank == 0) std::cout << "CANCELING AGENT REQUESTS" << std::endl;
-	repast::AgentRequest req(rank);
-	
-	repast::SharedContext<RepastHPCDemoAgent>::const_state_aware_iterator non_local_agents_iter  = context.begin(repast::SharedContext<RepastHPCDemoAgent>::NON_LOCAL);
-	repast::SharedContext<RepastHPCDemoAgent>::const_state_aware_iterator non_local_agents_end   = context.end(repast::SharedContext<RepastHPCDemoAgent>::NON_LOCAL);
-	while(non_local_agents_iter != non_local_agents_end){
-		req.addCancellation((*non_local_agents_iter)->getId());
-		non_local_agents_iter++;
+		std::cout << "CONNECTING: " << fromAgent->getId() << " to " << toAgent->getId() << std::endl;
 	}
-    repast::RepastProcess::instance()->requestAgents<RepastHPCDemoAgent, RepastHPCDemoAgentPackage, RepastHPCDemoAgentPackageProvider, RepastHPCDemoAgentPackageReceiver>(context, req, *provider, *receiver, *receiver);
-	
-	std::vector<repast::AgentId> cancellations = req.cancellations();
-	std::vector<repast::AgentId>::iterator idToRemove = cancellations.begin();
-	while(idToRemove != cancellations.end()){
-		context.importedAgentRemoved(*idToRemove);
-		idToRemove++;
-	}
+	repast::AgentId agentFrom(countOfAgents-1, 0, 0);
+	RepastHPCDemoAgent* fromAgent = context.getAgent(agentFrom);
+	repast::AgentId agentTo(0, 0, 0);
+	RepastHPCDemoAgent* toAgent = context.getAgent(agentTo);
+	boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(fromAgent, toAgent, rand() % 10, rand() % 10));
+	agentNetwork->addEdge(demoEdge);
+	std::cout << "CONNECTING: " << fromAgent->getId() << " to " << toAgent->getId() << std::endl;
 }
 
 
-void RepastHPCDemoModel::removeLocalAgents(){
-	int rank = repast::RepastProcess::instance()->rank();
-	if(rank == 0) std::cout << "REMOVING LOCAL AGENTS" << std::endl;
-	for(int i = 0; i < 5; i++){
-		repast::AgentId id(i, rank, 0);
-		repast::RepastProcess::instance()->agentRemoved(id);
-		context.removeAgent(id);
-	}
-  repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCDemoAgent, RepastHPCDemoAgentPackage, RepastHPCDemoAgentPackageProvider, RepastHPCDemoAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-}
-
-void RepastHPCDemoModel::moveAgents(){
-	int rank = repast::RepastProcess::instance()->rank();
-	if(rank == 0){
-		repast::AgentId agent0(0, 0, 0);
-		repast::AgentId agent1(1, 0, 0);
-		repast::AgentId agent2(2, 0, 0);
-		repast::AgentId agent3(3, 0, 0);
-		repast::AgentId agent4(4, 0, 0);
-		
-		repast::RepastProcess::instance()->moveAgent(agent0, 1);
-		repast::RepastProcess::instance()->moveAgent(agent1, 2);
-		repast::RepastProcess::instance()->moveAgent(agent2, 3);
-		repast::RepastProcess::instance()->moveAgent(agent3, 3);
-		repast::RepastProcess::instance()->moveAgent(agent4, 1);
-	}
-
-  repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCDemoAgent, RepastHPCDemoAgentPackage, RepastHPCDemoAgentPackageProvider, RepastHPCDemoAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-
-}
 
 void RepastHPCDemoModel::doSomething(){
-	int whichRank = 0;
-	if(repast::RepastProcess::instance()->rank() == whichRank) std::cout << " TICK " << repast::RepastProcess::instance()->getScheduleRunner().currentTick() << std::endl;
+		std::cout << " TICK " << repast::RepastProcess::instance()->getScheduleRunner().currentTick() << std::endl;
 
-	if(repast::RepastProcess::instance()->rank() == whichRank){
-		std::cout << "LOCAL AGENTS:" << std::endl;
-		for(int r = 0; r < 4; r++){
-			for(int i = 0; i < 10; i++){
-				repast::AgentId toDisplay(i, r, 0);
+		std::cout << "AGENTS:" << std::endl;
+			for(int i = 0; i < countOfAgents; i++){
+				repast::AgentId toDisplay(i, 0, 0);
 				RepastHPCDemoAgent* agent = context.getAgent(toDisplay);
-				if((agent != 0) && (agent->getId().currentRank() == whichRank)) std::cout << agent->getId() << " " << agent->getC() << " " << agent->getTotal() << std::endl;
-			}
-		}
-
-		std::cout << "NON LOCAL AGENTS:" << std::endl;
-		for(int r = 0; r < 4; r++){
-			for(int i = 0; i < 10; i++){
-				repast::AgentId toDisplay(i, r, 0);
-				RepastHPCDemoAgent* agent = context.getAgent(toDisplay);
-				if((agent != 0) && (agent->getId().currentRank() != whichRank)) std::cout << agent->getId() << " " << agent->getC() << " " << agent->getTotal() << std::endl;
-			}
-		}
+				if(agent != 0) std::cout << agent->getId() << " " << agent->getC() << " " << agent->getTotal() << std::endl;
+			
 	}
 	
 	std::vector<RepastHPCDemoAgent*> agents;
-	context.selectAgents(repast::SharedContext<RepastHPCDemoAgent>::LOCAL, countOfAgents, agents);
+	context.selectAgents(countOfAgents, agents);
 	std::vector<RepastHPCDemoAgent*>::iterator it = agents.begin();
 	while(it != agents.end()){
 		(*it)->play(agentNetwork);
 		it++;
     }
-
-	repast::RepastProcess::instance()->synchronizeAgentStates<RepastHPCDemoAgentPackage, RepastHPCDemoAgentPackageProvider, RepastHPCDemoAgentPackageReceiver>(*provider, *receiver);
-
+	
 }
 
 void RepastHPCDemoModel::initSchedule(repast::ScheduleRunner& runner){
-	runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::requestAgents)));
-    runner.scheduleEvent(1.1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::connectAgentNetwork)));
-	runner.scheduleEvent(2, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::doSomething)));
-	runner.scheduleEvent(3, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::moveAgents)));
+    runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::connectAgentNetwork)));
+	runner.scheduleEvent(2,2, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::doSomething)));
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::recordResults)));
 	runner.scheduleStop(stopAt);
 	
