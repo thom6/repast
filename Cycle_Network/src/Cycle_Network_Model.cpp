@@ -79,6 +79,7 @@ RepastHPCDemoModel::RepastHPCDemoModel(std::string propsFile, int argc, char** a
 	props = new repast::Properties(propsFile, argc, argv, comm);
 	stopAt = repast::strToInt(props->getProperty("stop.at"));
 	countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));
+	countOfRegions = repast::strToInt(props->getProperty("count.of.regions"));
 	initializeRandom(*props, comm);
 	if(repast::RepastProcess::instance()->rank() == 0) props->writeToSVFile("./output/record.csv");
 	provider = new RepastHPCDemoAgentPackageProvider(&context);
@@ -112,7 +113,7 @@ RepastHPCDemoModel::~RepastHPCDemoModel(){
 
 }
 
-void RepastHPCDemoModel::init(){
+void RepastHPCDemoModel::init(std::string propsFile){
 	int rank = repast::RepastProcess::instance()->rank();
 	for(int i = 0; i < countOfAgents; i++){
 		repast::AgentId id(i,rank,0);
@@ -120,8 +121,16 @@ void RepastHPCDemoModel::init(){
 		RepastHPCDemoAgent* agent = new RepastHPCDemoAgent(id);
 		context.addAgent(agent);
 	}
-}
 
+	for(int i = 0; i < countOfRegions; i++){
+		string rID = (props->getProperty("ID" + std::to_string(i)));
+		int rDedicatedRoadSpace = repast::strToInt(props->getProperty("DRS" + std::to_string(i)));
+		int rDriverMultiplier = repast::strToInt(props->getProperty("DM" + std::to_string(i)));
+		int rHilliness = repast::strToInt(props->getProperty("H" + std::to_string(i)));
+		bool rElectricBikes = repast::strToInt(props->getProperty("EB" + std::to_string(i)));
+		Region(rID, rDedicatedRoadSpace, rDriverMultiplier, rHilliness, rElectricBikes);
+	}
+}
 
 
 void RepastHPCDemoModel::connectAgentNetwork(){
@@ -142,6 +151,16 @@ void RepastHPCDemoModel::connectAgentNetwork(){
 	boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(fromAgent, toAgent, rand() % 10, rand() % 10));
 	agentNetwork->addEdge(demoEdge);
 	std::cout << "CONNECTING: " << fromAgent->getId() << " to " << toAgent->getId() << std::endl;
+	
+	for(int i = 0; i < 10; i++){
+		repast::AgentId agentFrom(rand()%100, 0, 0);
+		RepastHPCDemoAgent* fromAgent = context.getAgent(agentFrom);
+		repast::AgentId agentTo(rand()%100, 0, 0);
+		RepastHPCDemoAgent* toAgent = context.getAgent(agentTo);
+		boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > demoEdge(new DemoModelCustomEdge<RepastHPCDemoAgent>(fromAgent, toAgent, rand() % 10, rand() % 10));
+		agentNetwork->addEdge(demoEdge);
+		std::cout << "CONNECTING: " << fromAgent->getId() << " to " << toAgent->getId() << std::endl;
+	}
 }
 
 
@@ -153,15 +172,21 @@ void RepastHPCDemoModel::doSomething(){
 			for(int i = 0; i < countOfAgents; i++){
 				repast::AgentId toDisplay(i, 0, 0);
 				RepastHPCDemoAgent* agent = context.getAgent(toDisplay);
-				if(agent != 0) std::cout << agent->getId() << " " << agent->getC() << " " << agent->getTotal() << std::endl;
-			
+				//if(agent != 0) std::cout << agent->getId() << " " << agent->cycle() << " " << agent->popular()  << std::endl;
+				if(agent != 0) std::cout << agent->cycle() << " ";
 	}
+        std::cout<< endl;
 	
 	std::vector<RepastHPCDemoAgent*> agents;
 	context.selectAgents(countOfAgents, agents);
 	std::vector<RepastHPCDemoAgent*>::iterator it = agents.begin();
 	while(it != agents.end()){
 		(*it)->play(agentNetwork);
+		it++;
+    }
+	it = agents.begin();
+	while(it != agents.end()){
+		(*it)->updateCycle((Regions[(*it)->getr()].getEB()),(Regions[(*it)->getr()].getPRS()));
 		it++;
     }
 	
@@ -189,6 +214,25 @@ void RepastHPCDemoModel::recordResults(){
 		props->writeToSVFile("./output/results.csv", keyOrder);
     }
 }
+Region::Region(string rID, int rDedicatedRoadSpace, int rDriverMultiplier, int rHilliness, bool rElectricBikes){
+	ID = rID;
+	dedicatedRoadSpace = rDedicatedRoadSpace;
+	noOfCyclistsPerDay = 0;
+	noOfDriversPerDay = 0;
+	driverMultiplier = rDriverMultiplier;
+	hilliness = rHilliness;
+	percievedRoadSafety = 1;
+	electricBikes = rElectricBikes;	
+	
+}
 
-
+void Region::calcPervcievedRoadSafety(){
+	percievedRoadSafety=(noOfCyclistsPerDay/(noOfDriversPerDay*driverMultiplier)+noOfCyclistsPerDay)*((100-hilliness)/100)*(dedicatedRoadSpace/100);
+}
+bool Region::getEB(){
+	return electricBikes;
+}
+double Region::getPRS(){
+	return percievedRoadSafety;
+}
 	

@@ -1,4 +1,17 @@
 #Properties file
 stop.at = 5
 count.of.agents = 100
+count.of.regions = 2
+
+ID0 = E
+DRS0 = 60
+DM0 = 3
+H0 = 20
+EB0 = 0
+
+ID1 = W
+DRS1 = 80
+DM1 = 2
+H1 = 80
+EB1 = 1
 

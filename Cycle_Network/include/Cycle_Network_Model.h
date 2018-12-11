@@ -16,6 +16,23 @@
 #include "Cycle_Network_Agent.h"
 
 
+class Region{
+private:
+	string ID;
+	int dedicatedRoadSpace;
+	int noOfCyclistsPerDay;
+	int noOfDriversPerDay;
+	int driverMultiplier;
+	int hilliness;
+	double percievedRoadSafety;
+	bool electricBikes;
+public:
+	Region(string rID, int rDedicatedRoadSpace, int rDriverMultiplier, int rHilliness, bool rElectricBikes);
+	void calcPervcievedRoadSafety();
+	bool getEB();
+	double getPRS();
+};
+
 /* Agent Package Provider */
 class RepastHPCDemoAgentPackageProvider {
 	
@@ -72,6 +89,8 @@ public:
 class RepastHPCDemoModel{
 	int stopAt;
 	int countOfAgents;
+	int countOfRegions;
+	std::vector<Region> Regions;
 	repast::Properties* props;
 	repast::SharedContext<RepastHPCDemoAgent> context;
 	
@@ -86,27 +105,14 @@ class RepastHPCDemoModel{
 public:
 	RepastHPCDemoModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~RepastHPCDemoModel();
-	void init();
-    void connectAgentNetwork();
+	void init(std::string propsFile);
+	void connectAgentNetwork();
 	void cancelAgentRequests();
 	void removeLocalAgents();
 	void moveAgents();
 	void doSomething();
 	void initSchedule(repast::ScheduleRunner& runner);
 	void recordResults();
-};
-
-class Road{
-private:
-	int ID;
-	double dedicatedRoadSpace;
-	int noOfCyclistsPerDay;
-	int percievedRoadSafety;
-	
-	
-public:
-	DataSource_AgentCTotals(repast::SharedContext<RepastHPCDemoAgent>* c);
-	int getData();
 };
 
 #endif
