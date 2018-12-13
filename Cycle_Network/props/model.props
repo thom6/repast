@@ -1,4 +1,60 @@
 #Properties file
-stop.at = 5
-count.of.agents = 100
+stop.at = 2
+count.of.agents = 100000
+count.of.regions = 9
+
+ID0 = NE
+DRS0 = 10
+DM0 = 4
+H0 = 100
+EB0 = 0
+
+ID1 = N
+DRS1 = 10
+DM1 = 2
+H1 = 80
+EB1 = 0
+
+ID2 = NW
+DRS2 = 0
+DM2 = 2
+H2 = 90
+EB2 = 0
+
+ID3 = E
+DRS3 = 10
+DM3 = 5
+H3 = 80
+EB3 = 0
+
+ID4 = C
+DRS4 = 15
+DM4 = 7
+H4 = 70
+EB4 = 0
+
+ID5 = W
+DRS5 = 5
+DM5 = 1.5
+H5 = 100
+EB5 = 0
+
+ID6 = SE
+DRS6 = 5
+DM6 = 3
+H6 = 70
+EB6 = 0
+
+ID7 = S
+DRS7 = 5
+DM7 = 2
+H7 = 70
+EB7 = 0
+
+ID8 = SW
+DRS8 = 5
+DM8 = 1.5
+H8 = 80
+EB8 = 0
+
 

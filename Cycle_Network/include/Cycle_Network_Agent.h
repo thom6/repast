@@ -15,7 +15,10 @@ private:
     repast::AgentId   id_;
     double              c;
     double          total;
-	
+    bool	   iCycle;
+    double     popularity;
+    int 		r;
+
 public:
     RepastHPCDemoAgent(repast::AgentId id);
 	RepastHPCDemoAgent(){}
@@ -30,16 +33,18 @@ public:
     /* Getters specific to this kind of Agent */
     double getC(){                                      return c;      }
     double getTotal(){                                  return total;  }
-	
+    int getr(){						return r;      }
     /* Setter */
     void set(int currentRank, double newC, double newTotal);
 	
     /* Actions */
-    bool cooperate();                                                 // Will indicate whether the agent cooperates or not; probability determined by = c / total
+    bool cycle();
+    double popular();                                                 // Will indicate whether the agent cooperates or not; probability determined by = c / total
     void play(repast::SharedNetwork<RepastHPCDemoAgent,
               DemoModelCustomEdge<RepastHPCDemoAgent>,
               DemoModelCustomEdgeContent<RepastHPCDemoAgent>,
               DemoModelCustomEdgeContentManager<RepastHPCDemoAgent> > *network);
+    void updateCycle(bool EB, double PRS,int H);
 	
 };
 

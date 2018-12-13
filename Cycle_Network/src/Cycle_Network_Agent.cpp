@@ -2,9 +2,9 @@
 
 #include "Cycle_Network_Agent.h"
 
-RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id): id_(id), c(100), total(200){ }
+RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id): id_(id), c(100), total(200), iCycle(rand() % 2), popularity(5), r(rand()%9){}
 
-RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id, double newC, double newTotal): id_(id), c(newC), total(newTotal){ }
+RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id, double newC, double newTotal): id_(id), c(newC), total(newTotal), iCycle(rand() % 2), popularity(5){ }
 
 RepastHPCDemoAgent::~RepastHPCDemoAgent(){ }
 
@@ -15,8 +15,12 @@ void RepastHPCDemoAgent::set(int currentRank, double newC, double newTotal){
     total = newTotal;
 }
 
-bool RepastHPCDemoAgent::cooperate(){
-	return repast::Random::instance()->nextDouble() < c/total;
+bool RepastHPCDemoAgent::cycle(){
+	return iCycle;
+}
+
+double RepastHPCDemoAgent::popular(){
+	return popularity;
 }
 
 void RepastHPCDemoAgent::play(repast::SharedNetwork<RepastHPCDemoAgent,
@@ -26,28 +30,29 @@ void RepastHPCDemoAgent::play(repast::SharedNetwork<RepastHPCDemoAgent,
     std::vector<RepastHPCDemoAgent*> agentsToPlay;
     network->successors(this, agentsToPlay);
 
-    double cPayoff     = 0;
-    double totalPayoff = 0;
     std::vector<RepastHPCDemoAgent*>::iterator agentToPlay = agentsToPlay.begin();
+    int netSize        = 1;
     while(agentToPlay != agentsToPlay.end()){
         boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > edge = network->findEdge(this, *agentToPlay);
         double edgeWeight = edge->weight();
         int confidence = edge->getConfidence();
-        
-        bool iCooperated = cooperate();                          // Do I cooperate?
-        double payoff = (iCooperated ?
-						 ((*agentToPlay)->cooperate() ?  7 : 1) :     // If I cooperated, did my opponent?
-						 ((*agentToPlay)->cooperate() ? 10 : 3));     // If I didn't cooperate, did my opponent?
-        if(iCooperated) cPayoff += payoff * confidence * confidence * edgeWeight;
-        totalPayoff             += payoff * confidence * confidence * edgeWeight;
-		
+                       // Do I cooperate?
+        popularity += (iCycle ?
+						 ((*agentToPlay)->cycle() ?  10 : 4) :     // If I cooperated, did my opponent?
+						 ((*agentToPlay)->cycle() ? 6 : 1));     // If I didn't cooperate, did my opponent?
+	netSize++;
         agentToPlay++;
     }
-    c      += cPayoff;
-    total  += totalPayoff;
-	
+    popularity=popularity/(netSize-1);
+    
 }
 
+void RepastHPCDemoAgent::updateCycle(bool EB, double PRS,int H){
+	int random=rand() %100;
+	double chance= (popularity-1)*3+(PRS/100)*0.5+(1*(1-(double(H)*(~EB)))/100);
+	iCycle = chance>random;
+	
+}
 
 /* Serializable Agent Package Data */
 
