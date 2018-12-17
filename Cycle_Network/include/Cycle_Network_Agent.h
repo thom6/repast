@@ -20,7 +20,7 @@ private:
     int 		r;
 
 public:
-    RepastHPCDemoAgent(repast::AgentId id);
+    RepastHPCDemoAgent(repast::AgentId id, int newr);
 	RepastHPCDemoAgent(){}
     RepastHPCDemoAgent(repast::AgentId id, double newC, double newTotal);
 	
@@ -36,10 +36,11 @@ public:
     int getr(){						return r;      }
     /* Setter */
     void set(int currentRank, double newC, double newTotal);
+    void setr(int newr){				r = newr;      }
 	
     /* Actions */
     bool cycle();
-    double popular();                                                 // Will indicate whether the agent cooperates or not; probability determined by = c / total
+    double popular();                                                 
     void play(repast::SharedNetwork<RepastHPCDemoAgent,
               DemoModelCustomEdge<RepastHPCDemoAgent>,
               DemoModelCustomEdgeContent<RepastHPCDemoAgent>,

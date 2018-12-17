@@ -1,5 +1,5 @@
 #Properties file
-stop.at = 2
+stop.at = 240
 count.of.agents = 100000
 count.of.regions = 9
 
@@ -30,12 +30,12 @@ EB3 = 0
 ID4 = C
 DRS4 = 15
 DM4 = 7
-H4 = 70
+H4 = 50
 EB4 = 0
 
 ID5 = W
 DRS5 = 5
-DM5 = 1.5
+DM5 = 1
 H5 = 100
 EB5 = 0
 

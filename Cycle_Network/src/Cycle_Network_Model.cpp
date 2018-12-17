@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <vector>
 #include <boost/mpi.hpp>
 #include "repast_hpc/AgentId.h"
@@ -118,7 +119,7 @@ void RepastHPCDemoModel::init(std::string propsFile){
 	for(int i = 0; i < countOfAgents; i++){
 		repast::AgentId id(i,rank,0);
 		id.currentRank(rank);
-		RepastHPCDemoAgent* agent = new RepastHPCDemoAgent(id);
+		RepastHPCDemoAgent* agent = new RepastHPCDemoAgent(id,floor((double(i)/countOfAgents)*countOfRegions));
 		context.addAgent(agent);
 	}
 	std::ofstream output;
@@ -223,13 +224,13 @@ void RepastHPCDemoModel::countRegions(){
 }
 
 void RepastHPCDemoModel::buildInfrastructure(){
-	Regions[5].buildEB();
-	for (int i = 0; i < 100; i++){ 	
-		Regions[5].increaseDRS();
+	//Regions[4].buildEB();
+	for (int i = 0; i < 50; i++){ 	
+		Regions[4].increaseDRS();
 	}
-	Regions[7].buildEB();
-	for (int i = 0; i < 100; i++){ 	
-		Regions[7].increaseDRS();
+	Regions[2].buildEB();
+	for (int i = 0; i < 50; i++){ 	
+		Regions[2].increaseDRS();
 	}
 }
 
@@ -237,7 +238,7 @@ void RepastHPCDemoModel::initSchedule(repast::ScheduleRunner& runner){
 	runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::connectAgentNetwork)));
 	runner.scheduleEvent(2,2, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::doSomething)));
 	runner.scheduleEvent(3,2, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::countRegions)));
-	runner.scheduleEvent(100, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::buildInfrastructure)));
+	runner.scheduleEvent(120, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::buildInfrastructure)));
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::recordResults)));
 	runner.scheduleStop(stopAt);
 	
@@ -270,7 +271,7 @@ Region::Region(string rID, int rDedicatedRoadSpace, int rDriverMultiplier, int r
 }
 
 void Region::calcPervcievedRoadSafety(){
-	percievedRoadSafety=(double(noOfCyclistsPerDay)/double(noOfDriversPerDay*driverMultiplier+noOfCyclistsPerDay))*50 + (double(dedicatedRoadSpace)/10)*50;
+	percievedRoadSafety=(getPercOfCyclistsPerDay())*50 + (double(dedicatedRoadSpace)/10)*50;
 	//std :: cout << (double(noOfCyclistsPerDay)/double(noOfDriversPerDay*driverMultiplier+noOfCyclistsPerDay)) << " " << (double(100-hilliness)/100)<< " " << (double(dedicatedRoadSpace)/100) << " " << percievedRoadSafety << std :: endl;
 }
 bool Region::getEB(){

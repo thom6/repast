@@ -2,7 +2,7 @@
 
 #include "Cycle_Network_Agent.h"
 
-RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id): id_(id), c(100), total(200), iCycle(rand() % 2), popularity(5), r(rand()%9){}
+RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id, int newr): id_(id), c(100), total(200), iCycle(rand() % 2), popularity(5), r(newr){}
 
 RepastHPCDemoAgent::RepastHPCDemoAgent(repast::AgentId id, double newC, double newTotal): id_(id), c(newC), total(newTotal), iCycle(rand() % 2), popularity(5){ }
 
@@ -34,12 +34,11 @@ void RepastHPCDemoAgent::play(repast::SharedNetwork<RepastHPCDemoAgent,
     int netSize        = 1;
     while(agentToPlay != agentsToPlay.end()){
         boost::shared_ptr<DemoModelCustomEdge<RepastHPCDemoAgent> > edge = network->findEdge(this, *agentToPlay);
-        double edgeWeight = edge->weight();
-        int confidence = edge->getConfidence();
-                       // Do I cooperate?
+
+
         popularity += (iCycle ?
-						 ((*agentToPlay)->cycle() ?  10 : 4) :     // If I cooperated, did my opponent?
-						 ((*agentToPlay)->cycle() ? 6 : 1));     // If I didn't cooperate, did my opponent?
+						 ((*agentToPlay)->cycle() ?  10 : 4) :    
+						 ((*agentToPlay)->cycle() ? 6 : 1));  
 	netSize++;
         agentToPlay++;
     }
@@ -49,7 +48,8 @@ void RepastHPCDemoAgent::play(repast::SharedNetwork<RepastHPCDemoAgent,
 
 void RepastHPCDemoAgent::updateCycle(bool EB, double PRS,int H){
 	int random=rand() %100;
-	double chance= (popularity-1)*3+(PRS/100)*0.5+(1*(1-(double(H)*(~EB)))/100);
+	double chance= ((popularity-1)*1)+((PRS/100)*2)+(5*(100-(double(H)*(!EB)))/100);
+	//std::cout<<(popularity-1)*1<<" "<<(PRS/100)*2<<" "<<(5*(100-(double(H)*(!EB)))/100) << " " << chance << !EB <<std::endl;
 	iCycle = chance>random;
 	
 }

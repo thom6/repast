@@ -116,8 +116,6 @@ public:
 	~RepastHPCDemoModel();
 	void init(std::string propsFile);
 	void connectAgentNetwork();
-	void cancelAgentRequests();
-	void removeLocalAgents();
 	void moveAgents();
 	void doSomething();
 	void countRegions();
